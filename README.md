@@ -41,7 +41,9 @@ I recommend use [Caddy](https://caddyserver.com) for automatic HTTPS in front of
 ```caddyfile
 # Caddy 1
 unknwon.dev {
-    proxy / localhost:4333
+    proxy / localhost:4333 {
+        transparent
+    }
 }
 
 # Caddy 2
