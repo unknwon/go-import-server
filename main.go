@@ -72,7 +72,8 @@ func main() {
 	}
 
 	m := macaron.New()
-	for _, pkg := range config.Packages {
+	for i := range config.Packages {
+		pkg := config.Packages[i]
 		m.Get(pkg.Subpath, func(w http.ResponseWriter, r *http.Request) {
 			if err = t.Execute(w, pkg); err != nil {
 				log.Error("Failed to execute template: %v", err)
