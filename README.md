@@ -1,6 +1,6 @@
 # go-import-server
 
-HTTP server for canonical "go get" import path.
+HTTP server for canonical "go get" import path. It supports all versions of `go get` regardless of if it's Go Modules aware.
 
 ## Installation
 
@@ -33,7 +33,7 @@ YYYY/MM/DD 12:34:56 [ INFO] Listening on 127.0.0.1:4333...
 
 ## Reverse Proxy and HTTPS
 
-I recommend use Caddy for automatic HTTPS in front of this tool:
+I recommend use [Caddy](https://caddyserver.com) for automatic HTTPS in front of this tool:
 
 ```caddyfile
 # Caddy 1
@@ -49,7 +49,7 @@ unknwon.dev {
 
 ## Metrics
 
-This tool exposes Prometheus metrics via endpoint `/-/metrics`.
+This tool exposes [Prometheus](https://prometheus.io/) metrics via endpoint `/-/metrics`.
 
 You can set HTTP Basic Authentication for this endpoint via your `app.toml`:
 
