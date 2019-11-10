@@ -12,6 +12,8 @@ import (
 	log "unknwon.dev/clog/v2"
 )
 
+var Version = "dev"
+
 func main() {
 	configPath := flag.String("config", "./app.toml", "The config file path")
 	flag.Parse()
@@ -19,6 +21,7 @@ func main() {
 	if err := log.NewConsole(); err != nil {
 		panic("error init logger: " + err.Error())
 	}
+	log.Info("go-import-server: %v", Version)
 
 	var config struct {
 		Addr     string
@@ -91,7 +94,7 @@ func main() {
 				auth.SecureCompare(password, config.Prometheus.AuthPassword)
 		}), promhttp.Handler())
 
-	log.Info("Listening on %s...", config.Addr)
+	log.Info("Listening on http://%s...", config.Addr)
 	if err := http.ListenAndServe(config.Addr, m); err != nil {
 		log.Fatal("Failed to start server: %v", err)
 	}

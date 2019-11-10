@@ -4,6 +4,8 @@ HTTP server for canonical "go get" import path. It supports all versions of `go 
 
 ## Installation
 
+Install from source or download binaries on [GitHub Releases](https://github.com/unknwon/go-import-server/releases).
+
 The minimum requirement of Go is **1.13**.
 
 ```sh
@@ -28,7 +30,7 @@ Assuming `$GOPATH/bin` has been added to your `$PATH` environment variable.
 
 ```sh
 $ go-import-server -config=./app.toml
-YYYY/MM/DD 12:34:56 [ INFO] Listening on 127.0.0.1:4333...
+YYYY/MM/DD 12:34:56 [ INFO] Listening on http://127.0.0.1:4333...
 ```
 
 ## Reverse Proxy and HTTPS
