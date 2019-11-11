@@ -74,8 +74,8 @@ func main() {
 		})
 	}
 	m.Get("/-/metrics",
-		func(r *http.Request) {
-			log.Trace("Metrics requested from %q", r.RemoteAddr)
+		func(c *macaron.Context) {
+			log.Trace("Metrics requested from %q", c.RemoteAddr())
 		},
 		auth.BasicFunc(func(username, password string) bool {
 			// Not configured, skip.

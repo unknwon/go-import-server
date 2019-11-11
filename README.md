@@ -48,7 +48,13 @@ unknwon.dev {
 
 # Caddy 2
 unknwon.dev {
-    reverse_proxy * localhost:4333
+    reverse_proxy * localhost:4333 {
+        header_up Host {http.request.host}
+        header_up X-Real-IP {http.request.remote}
+        header_up X-Forwarded-For {http.request.remote}
+        header_up X-Forwarded-Port {http.request.port}
+        header_up X-Forwarded-Proto {http.request.scheme}
+    }
 }
 ```
 
