@@ -8,7 +8,7 @@ import (
 
 func setupPrometheusMetrics(s *stats) {
 	cs := []prometheus.Collector{
-		prometheus.NewGaugeFunc(prometheus.GaugeOpts{
+		prometheus.NewCounterFunc(prometheus.CounterOpts{
 			Namespace: "go_import_server",
 			Subsystem: "stats",
 			Name:      "view_total",
@@ -16,7 +16,7 @@ func setupPrometheusMetrics(s *stats) {
 		}, func() float64 {
 			return float64(s.TotalView())
 		}),
-		prometheus.NewGaugeFunc(prometheus.GaugeOpts{
+		prometheus.NewCounterFunc(prometheus.CounterOpts{
 			Namespace: "go_import_server",
 			Subsystem: "stats",
 			Name:      "get_total",
@@ -29,7 +29,7 @@ func setupPrometheusMetrics(s *stats) {
 	sr := strings.NewReplacer(".", "_", "/", "_", "-", "_")
 	for p := range s.pkgsView {
 		p := p
-		cs = append(cs, prometheus.NewGaugeFunc(prometheus.GaugeOpts{
+		cs = append(cs, prometheus.NewCounterFunc(prometheus.CounterOpts{
 			Namespace: "go_import_server",
 			Subsystem: "stats",
 			Name:      "view_" + sr.Replace(p),
@@ -41,7 +41,7 @@ func setupPrometheusMetrics(s *stats) {
 
 	for p := range s.pkgsGet {
 		p := p
-		cs = append(cs, prometheus.NewGaugeFunc(prometheus.GaugeOpts{
+		cs = append(cs, prometheus.NewCounterFunc(prometheus.CounterOpts{
 			Namespace: "go_import_server",
 			Subsystem: "stats",
 			Name:      "get_" + sr.Replace(p),
