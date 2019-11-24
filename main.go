@@ -153,8 +153,8 @@ func getTemplate() (*template.Template, error) {
 		<pre>
 		<code>import "{{.ImportPath}}"</code></pre>
 	
-		<p>View <a href="{{.Repo}}">source code</a>.</p>
-		<p>View <a href="https://godoc.org/{{.ImportPath}}">GoDoc</a>.</p>
+		<p>Repository: <a href="{{.Repo}}">{{.Repo}}</a></p>
+		<p>GoDoc: <a href="https://pkg.go.dev/{{.ImportPath}}">https://pkg.go.dev/{{.ImportPath}}</a></p>
 	</body>
 	</html>`)
 }
