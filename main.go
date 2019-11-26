@@ -160,7 +160,9 @@ func getTemplate() (*template.Template, error) {
 }
 
 func getDBWithStats(path string) (*badger.DB, *stats, error) {
-	db, err := badger.Open(badger.DefaultOptions(path))
+	opts := badger.DefaultOptions(path)
+	opts.MaxCacheSize = 10
+	db, err := badger.Open(opts)
 	if err != nil {
 		return nil, nil, fmt.Errorf("open: %v", err)
 	}
