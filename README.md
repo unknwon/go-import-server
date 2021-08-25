@@ -81,6 +81,12 @@ go_import_server_stats_get_total 16
 go_import_server_stats_get_unknwon_dev_go_import_server 16
 ```
 
+## Open-source, not open-contribution
+
+_Quote from [benbjohnson/litestream](https://github.com/benbjohnson/litestream#open-source-not-open-contribution):_
+
+> I am grateful for community involvement, bug reports, & feature requests. I do not wish to come off as anything but welcoming, however, I've made the decision to keep this project closed to contributions for my own mental health and long term viability of the project.
+
 ## License
 
 This project is under MIT License. See the [LICENSE](LICENSE) file for the full license text.
