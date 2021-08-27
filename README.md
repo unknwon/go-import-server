@@ -24,7 +24,7 @@ db_path = "app.db"
 import_path = "unknwon.dev/go-import-server"
 subpath = "/go-import-server"
 repo = "https://github.com/unknwon/go-import-server"
-branch = "master"
+branch = "main"
 ```
 
 Assuming `$GOPATH/bin` has been added to your `$PATH` environment variable.
