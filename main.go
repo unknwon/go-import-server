@@ -11,9 +11,9 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/dgraph-io/badger/v2"
-	"github.com/go-macaron/auth"
+	"github.com/flamego/auth"
+	"github.com/flamego/flamego"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"gopkg.in/macaron.v1"
 	log "unknwon.dev/clog/v2"
 )
 
@@ -39,14 +39,14 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to get database with stats: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	t, err := getTemplate()
 	if err != nil {
 		log.Fatal("Failed to get template: %v", err)
 	}
 
-	m := macaron.New()
+	f := flamego.New()
 	for i := range config.Packages {
 		pkg := config.Packages[i]
 
@@ -59,7 +59,7 @@ func main() {
 			stats.pkgsGet[pkg.ImportPath] = &pkgGet
 		}
 
-		m.Get(pkg.Subpath, func(w http.ResponseWriter, r *http.Request) {
+		f.Get(pkg.Subpath, func(w http.ResponseWriter, r *http.Request) {
 			if err = t.Execute(w, pkg); err != nil {
 				log.Error("Failed to execute template: %v", err)
 				return
@@ -73,8 +73,8 @@ func main() {
 			}
 		})
 	}
-	m.Get("/-/metrics",
-		func(c *macaron.Context) {
+	f.Get("/-/metrics",
+		func(c flamego.Context) {
 			log.Trace("Metrics requested from %q", c.RemoteAddr())
 		},
 		auth.BasicFunc(func(username, password string) bool {
@@ -93,7 +93,7 @@ func main() {
 	done := make(chan struct{})
 	go stats.start(db, done)
 
-	s := newServer(config.Addr, m)
+	s := newServer(config.Addr, f)
 	log.Info("Listening on http://%s...", s.Addr)
 	if err := s.ListenAndServe(); err != nil {
 		if err == http.ErrServerClosed {
@@ -178,10 +178,10 @@ func getDBWithStats(path string) (*badger.DB, *stats, error) {
 	return db, s, nil
 }
 
-func newServer(addr string, m *macaron.Macaron) *http.Server {
+func newServer(addr string, f *flamego.Flame) *http.Server {
 	s := &http.Server{
 		Addr:    addr,
-		Handler: m,
+		Handler: f,
 	}
 
 	quit := make(chan os.Signal)
