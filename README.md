@@ -34,7 +34,7 @@ $ go-import-server -config=./app.toml
 YYYY/MM/DD 12:34:56 [ INFO] Listening on http://127.0.0.1:4333...
 ```
 
-## Reverse Proxy and HTTPS
+## Reverse proxy and HTTPS
 
 I recommend use [Caddy](https://caddyserver.com) for automatic HTTPS in front of this tool:
 
