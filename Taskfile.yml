@@ -28,9 +28,9 @@ tasks:
   release:
     desc: Build the binary and pack resources to ZIP files
     cmds:
-      - env GOOS=darwin GOARCH=amd64 go build -ldflags 'main.Version={{.BUILD_COMMIT}}' -o {{.NAME}}; tar czf darwin_amd64.tar.gz {{.NAME}}
-      - env GOOS=linux GOARCH=amd64 go build -ldflags 'main.Version={{.BUILD_COMMIT}}' -o {{.NAME}}; tar czf linux_amd64.tar.gz {{.NAME}}
-      - env GOOS=windows GOARCH=amd64 go build -ldflags 'main.Version={{.BUILD_COMMIT}}' -o {{.NAME}}; tar czf windows_amd64.tar.gz {{.NAME}}
+      - env GOOS=darwin GOARCH=amd64 go build -ldflags 'main.Version={{.BUILD_COMMIT}}' -o {{.NAME}}; tar czf {{.NAME}}_darwin_amd64.tar.gz {{.NAME}}
+      - env GOOS=linux GOARCH=amd64 go build -ldflags 'main.Version={{.BUILD_COMMIT}}' -o {{.NAME}}; tar czf {{.NAME}}_linux_amd64.tar.gz {{.NAME}}
+      - env GOOS=windows GOARCH=amd64 go build -ldflags 'main.Version={{.BUILD_COMMIT}}' -o {{.NAME}}; tar czf {{.NAME}}_windows_amd64.tar.gz {{.NAME}}
 
   clean:
      desc: Clean up meta and packed files
