@@ -6,7 +6,7 @@ HTTP server for canonical "go get" import path. It supports all versions of `go 
 
 Install from source or download binaries on [GitHub Releases](https://github.com/unknwon/go-import-server/releases).
 
-The minimum requirement of Go is **1.13**, and 64-bit system is required because of [a bug in BadgerDB](https://github.com/dgraph-io/badger/issues/953).
+The minimum requirement of Go is **1.16**, and 64-bit system is required because of [a bug in BadgerDB](https://github.com/dgraph-io/badger/issues/953).
 
 ```sh
 $ go get unknwon.dev/go-import-server
@@ -79,6 +79,16 @@ go_import_server_stats_view_total 20
 go_import_server_stats_view_unknwon_dev_go_import_server 20
 go_import_server_stats_get_total 16
 go_import_server_stats_get_unknwon_dev_go_import_server 16
+```
+
+## Development
+
+This project uses the [Task](https://taskfile.dev/) as the build tool, it is not required as all the commands are listed in the `Taskfile.yml` in plaintext.
+
+The source files of templates are located in the `templates` directory but uses [Go embed](https://blog.jetbrains.com/go/2021/06/09/how-to-use-go-embed-in-go-1-16/) to embed into the binary. Due to the nature limitation of the Go embed, templates cannot be hot-reloaded after modifications, so the following command needs to be used for re-packing templates and re-compiling the bianry:
+
+```sh
+$ task web --force
 ```
 
 ## Open-source, not open-contribution

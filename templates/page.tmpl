@@ -1,0 +1,28 @@
+{{with .Package}}
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="go-import" content="{{.ImportPath}} git {{.Repo}}">
+  <meta name="go-source" content="{{.ImportPath}} _ {{.Repo}}/tree/{{.Branch}}{/dir} {{.Repo}}/blob/{{.Branch}}{/dir}/{file}#L{line}">
+  <style>
+    pre {
+      tab-size: 4;
+    }
+  </style>
+</head>
+<body>
+<p>Install command:</p>
+<pre>
+	<code>go get {{.ImportPath}}</code></pre>
+
+<p>Import in source code:</p>
+<pre>
+	<code>import "{{.ImportPath}}"</code></pre>
+
+<p>Repository: <a href="{{.Repo}}">{{.Repo}}</a></p>
+<p>GoDoc: <a href="https://pkg.go.dev/{{.ImportPath}}">https://pkg.go.dev/{{.ImportPath}}</a></p>
+<p>Return to <a href="/">home</a>.</p>
+</body>
+</html>
+{{end}}

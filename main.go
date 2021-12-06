@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"text/template"
 
 	"github.com/BurntSushi/toml"
 	"github.com/dgraph-io/badger/v2"
 	"github.com/flamego/auth"
 	"github.com/flamego/flamego"
+	"github.com/flamego/template"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "unknwon.dev/clog/v2"
 )
@@ -41,12 +41,23 @@ func main() {
 	}
 	defer func() { _ = db.Close() }()
 
-	t, err := getTemplate()
+	fs, err := template.EmbedFS(templates, "templates", []string{".tmpl"})
 	if err != nil {
-		log.Fatal("Failed to get template: %v", err)
+		log.Fatal("Failed to load templates: %v", err)
 	}
 
 	f := flamego.New()
+	f.Use(template.Templater(
+		template.Options{
+			FileSystem: fs,
+		},
+	))
+
+	f.Get("/", func(t template.Template, data template.Data) {
+		data["Packages"] = config.Packages
+		t.HTML(http.StatusOK, "home")
+	})
+
 	for i := range config.Packages {
 		pkg := config.Packages[i]
 
@@ -59,11 +70,10 @@ func main() {
 			stats.pkgsGet[pkg.ImportPath] = &pkgGet
 		}
 
-		f.Get(pkg.Subpath, func(w http.ResponseWriter, r *http.Request) {
-			if err = t.Execute(w, pkg); err != nil {
-				log.Error("Failed to execute template: %v", err)
-				return
-			}
+		f.Get(pkg.Subpath, func(r *http.Request, t template.Template, data template.Data) {
+			data["Package"] = pkg
+			t.HTML(http.StatusOK, "page")
+
 			log.Trace("Page served: %s", r.URL.Path)
 
 			if r.URL.Query().Get("go-get") == "1" {
@@ -73,6 +83,7 @@ func main() {
 			}
 		})
 	}
+
 	f.Get("/-/metrics",
 		func(c flamego.Context) {
 			log.Trace("Metrics requested from %q", c.RemoteAddr())
@@ -129,34 +140,6 @@ func loadConfig(path string) (*config, error) {
 		return nil, fmt.Errorf("decode file: %v", err)
 	}
 	return &c, nil
-}
-
-func getTemplate() (*template.Template, error) {
-	return template.New("go-import").Parse(`<!DOCTYPE html>
-	<html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-		<meta name="go-import" content="{{.ImportPath}} git {{.Repo}}">
-		<meta name="go-source" content="{{.ImportPath}} _ {{.Repo}}/tree/{{.Branch}}{/dir} {{.Repo}}/blob/{{.Branch}}{/dir}/{file}#L{line}">
-		<style>
-			pre {
-				tab-size: 4;
-			}
-		</style>
-	</head>
-	<body>
-		<p>Install command:</p>
-		<pre>
-		<code>go get {{.ImportPath}}</code></pre>
-	
-		<p>Import in source code:</p>
-		<pre>
-		<code>import "{{.ImportPath}}"</code></pre>
-	
-		<p>Repository: <a href="{{.Repo}}">{{.Repo}}</a></p>
-		<p>GoDoc: <a href="https://pkg.go.dev/{{.ImportPath}}">https://pkg.go.dev/{{.ImportPath}}</a></p>
-	</body>
-	</html>`)
 }
 
 func getDBWithStats(path string) (*badger.DB, *stats, error) {
