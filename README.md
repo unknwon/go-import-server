@@ -85,7 +85,7 @@ go_import_server_stats_get_unknwon_dev_go_import_server 16
 
 This project uses the [Task](https://taskfile.dev/) as the build tool, it is not required as all the commands are listed in the `Taskfile.yml` in plaintext.
 
-The source files of templates are located in the `templates` directory but uses [Go embed](https://blog.jetbrains.com/go/2021/06/09/how-to-use-go-embed-in-go-1-16/) to embed into the binary. Due to the nature limitation of the Go embed, templates cannot be hot-reloaded after modifications, so the following command needs to be used for re-packing templates and re-compiling the bianry:
+The source files of templates are located in the `templates` directory but uses [Go embed](https://blog.jetbrains.com/go/2021/06/09/how-to-use-go-embed-in-go-1-16/) to embed into the binary. Due to the nature limitation of the Go embed, templates cannot be hot-reloaded after modifications, so the following command needs to be used for re-packing templates and re-compiling the binary:
 
 ```sh
 $ task web --force
