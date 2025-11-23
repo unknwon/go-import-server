@@ -159,7 +159,7 @@ func newServer(addr string, f *flamego.Flame) *http.Server {
 		Handler: f,
 	}
 
-	quit := make(chan os.Signal)
+	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	go func() {
 		<-quit
