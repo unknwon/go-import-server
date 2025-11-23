@@ -34,7 +34,7 @@ func main() {
 		log.Fatal("Failed to load config: %v", err)
 	}
 
-	stats, err := getStatsFromJSON(config.DBPath)
+	stats, err := getStatsFromJSON(config.StatsPath)
 	if err != nil {
 		log.Fatal("Failed to load stats: %v", err)
 	}
@@ -100,7 +100,7 @@ func main() {
 	setupPrometheusMetrics(stats)
 
 	done := make(chan struct{})
-	go stats.start(config.DBPath, done)
+	go stats.start(config.StatsPath, done)
 
 	s := newServer(config.Addr, f)
 	log.Info("Listening on http://%s...", s.Addr)
@@ -117,9 +117,9 @@ func main() {
 }
 
 type config struct {
-	Addr     string
-	DBPath   string `toml:"db_path"`
-	Packages []struct {
+	Addr      string
+	StatsPath string `toml:"stats_path"`
+	Packages  []struct {
 		ImportPath string `toml:"import_path"`
 		Subpath    string
 		Repo       string
