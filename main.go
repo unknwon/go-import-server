@@ -141,7 +141,6 @@ func loadConfig(path string) (*config, error) {
 }
 
 func getStatsFromJSON(path string) (*stats, error) {
-	// Initialize stats
 	s := &stats{
 		pkgsView: make(map[string]*int64),
 		pkgsGet:  make(map[string]*int64),
