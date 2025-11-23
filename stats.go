@@ -124,6 +124,9 @@ func (s *stats) syncToJSON(path string) {
 
 	for p := range s.pkgsView {
 		sd.PkgsView[p] = s.PkgView(p)
+	}
+
+	for p := range s.pkgsGet {
 		sd.PkgsGet[p] = s.PkgGet(p)
 	}
 
