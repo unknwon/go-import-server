@@ -6,10 +6,10 @@ HTTP server for canonical "go get" import path. It supports all versions of `go 
 
 Install from source or download binaries on [GitHub Releases](https://github.com/unknwon/go-import-server/releases).
 
-The minimum requirement of Go is **1.16**.
+The minimum requirement of Go is **1.25**.
 
 ```sh
-$ go get unknwon.dev/go-import-server
+$ go install unknwon.dev/go-import-server@latest
 ```
 
 ### Configuration
@@ -18,7 +18,7 @@ Example for this tool itself (save as `app.toml`):
 
 ```toml
 addr = "127.0.0.1:4333"
-db_path = "app.db"
+stats_path = "stats.json"
 
 [[packages]]
 import_path = "unknwon.dev/go-import-server"
@@ -27,7 +27,8 @@ repo = "https://github.com/unknwon/go-import-server"
 branch = "main"
 ```
 
-Note: The `db_path` now points to a JSON file (not a directory) that stores statistics.
+>[!warning]
+> Starting version 0.5.0, the `db_path` is removed and statistics are stored in a JSON file. Historical data will not be migrated automatically.
 
 Assuming `$GOPATH/bin` has been added to your `$PATH` environment variable.
 
