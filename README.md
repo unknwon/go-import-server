@@ -6,7 +6,7 @@ HTTP server for canonical "go get" import path. It supports all versions of `go 
 
 Install from source or download binaries on [GitHub Releases](https://github.com/unknwon/go-import-server/releases).
 
-The minimum requirement of Go is **1.16**, and 64-bit system is required because of [a bug in BadgerDB](https://github.com/dgraph-io/badger/issues/953).
+The minimum requirement of Go is **1.16**.
 
 ```sh
 $ go get unknwon.dev/go-import-server
@@ -26,6 +26,8 @@ subpath = "/go-import-server"
 repo = "https://github.com/unknwon/go-import-server"
 branch = "main"
 ```
+
+Note: The `db_path` now points to a JSON file (not a directory) that stores statistics.
 
 Assuming `$GOPATH/bin` has been added to your `$PATH` environment variable.
 
@@ -70,7 +72,7 @@ auth_username = "superuser"
 auth_password = "supersecure"
 ```
 
-The [BadgerDB](https://github.com/dgraph-io/badger) is used to store total page views and number of `go get`s.
+A JSON file is used to store total page views and number of `go get`s.
 
 Here is an example dump:
 
