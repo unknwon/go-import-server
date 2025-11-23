@@ -9,7 +9,6 @@ import (
 	"os/signal"
 
 	"github.com/BurntSushi/toml"
-	"github.com/dgraph-io/badger/v2"
 	"github.com/flamego/auth"
 	"github.com/flamego/flamego"
 	"github.com/flamego/template"
@@ -35,11 +34,10 @@ func main() {
 		log.Fatal("Failed to load config: %v", err)
 	}
 
-	db, stats, err := getDBWithStats(config.DBPath)
+	stats, err := getStatsFromJSON(config.StatsPath)
 	if err != nil {
-		log.Fatal("Failed to get database with stats: %v", err)
+		log.Fatal("Failed to load stats: %v", err)
 	}
-	defer func() { _ = db.Close() }()
 
 	fs, err := template.EmbedFS(templates, "templates", []string{".tmpl"})
 	if err != nil {
@@ -102,7 +100,7 @@ func main() {
 	setupPrometheusMetrics(stats)
 
 	done := make(chan struct{})
-	go stats.start(db, done)
+	go stats.start(config.StatsPath, done)
 
 	s := newServer(config.Addr, f)
 	log.Info("Listening on http://%s...", s.Addr)
@@ -119,9 +117,9 @@ func main() {
 }
 
 type config struct {
-	Addr     string
-	DBPath   string `toml:"db_path"`
-	Packages []struct {
+	Addr      string
+	StatsPath string `toml:"stats_path"`
+	Packages  []struct {
 		ImportPath string `toml:"import_path"`
 		Subpath    string
 		Repo       string
@@ -142,23 +140,16 @@ func loadConfig(path string) (*config, error) {
 	return &c, nil
 }
 
-func getDBWithStats(path string) (*badger.DB, *stats, error) {
-	opts := badger.DefaultOptions(path)
-	db, err := badger.Open(opts)
-	if err != nil {
-		return nil, nil, fmt.Errorf("open: %v", err)
-	}
-
-	// Retrieve current stats in database.
+func getStatsFromJSON(path string) (*stats, error) {
 	s := &stats{
 		pkgsView: make(map[string]*int64),
 		pkgsGet:  make(map[string]*int64),
 	}
-	if err = s.loadFromDB(db); err != nil {
-		return nil, nil, fmt.Errorf("load stats from DB: %v", err)
+	if err := s.loadFromJSON(path); err != nil {
+		return nil, fmt.Errorf("load stats from JSON: %v", err)
 	}
 
-	return db, s, nil
+	return s, nil
 }
 
 func newServer(addr string, f *flamego.Flame) *http.Server {
@@ -167,7 +158,7 @@ func newServer(addr string, f *flamego.Flame) *http.Server {
 		Handler: f,
 	}
 
-	quit := make(chan os.Signal)
+	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	go func() {
 		<-quit

@@ -1,12 +1,11 @@
 package main
 
 import (
-	"strconv"
-	"strings"
+	"encoding/json"
+	"os"
 	"sync/atomic"
 	"time"
 
-	"github.com/dgraph-io/badger/v2"
 	log "unknwon.dev/clog/v2"
 )
 
@@ -49,51 +48,48 @@ func (s *stats) PkgGetIncr(improtPath string, n int64) {
 	atomic.StoreInt64(&s.lastUpdated, time.Now().Unix())
 }
 
-// NOTE: atomic operation is not needed in this method since it is currently only
-// being called at init time.
-func (s *stats) loadFromDB(db *badger.DB) error {
-	return db.View(func(tx *badger.Txn) error {
-		iter := tx.NewIterator(badger.DefaultIteratorOptions)
-		defer iter.Close()
-
-		for iter.Rewind(); iter.Valid(); iter.Next() {
-			item := iter.Item()
-			k := item.Key()
-			err := item.Value(func(v []byte) (err error) {
-				ks := string(k)
-				if ks == "view_total" {
-					s.totalView, _ = strconv.ParseInt(string(v), 10, 64)
-					return nil
-				} else if ks == "get_total" {
-					s.totalGet, _ = strconv.ParseInt(string(v), 10, 64)
-					return nil
-				}
-
-				if strings.HasPrefix(ks, "view_") {
-					importPath := strings.TrimPrefix(ks, "view_")
-					pkgView, _ := strconv.ParseInt(string(v), 10, 64)
-					s.pkgsView[importPath] = &pkgView
-					return nil
-				}
-
-				if strings.HasPrefix(ks, "get_") {
-					importPath := strings.TrimPrefix(ks, "get_")
-					pkgGet, _ := strconv.ParseInt(string(v), 10, 64)
-					s.pkgsGet[importPath] = &pkgGet
-					return nil
-				}
-
-				return nil
-			})
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+// statsData is the structure for JSON serialization
+type statsData struct {
+	TotalView int64            `json:"total_view"`
+	TotalGet  int64            `json:"total_get"`
+	PkgsView  map[string]int64 `json:"pkgs_view"`
+	PkgsGet   map[string]int64 `json:"pkgs_get"`
 }
 
-func (s *stats) start(db *badger.DB, done chan struct{}) {
+// NOTE: atomic operation is not needed in this method since it is currently only
+// being called at init time.
+func (s *stats) loadFromJSON(path string) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// File doesn't exist yet, which is fine
+			return nil
+		}
+		return err
+	}
+
+	var sd statsData
+	if err := json.Unmarshal(data, &sd); err != nil {
+		return err
+	}
+
+	s.totalView = sd.TotalView
+	s.totalGet = sd.TotalGet
+
+	for importPath, view := range sd.PkgsView {
+		v := view
+		s.pkgsView[importPath] = &v
+	}
+
+	for importPath, get := range sd.PkgsGet {
+		g := get
+		s.pkgsGet[importPath] = &g
+	}
+
+	return nil
+}
+
+func (s *stats) start(path string, done chan struct{}) {
 	defer func() {
 		log.Info("Exiting stats syncing goroutine...")
 		done <- struct{}{}
@@ -103,48 +99,45 @@ func (s *stats) start(db *badger.DB, done chan struct{}) {
 	for {
 		select {
 		case <-t.C:
-			s.syncToDB(db)
+			s.syncToJSON(path)
 		case <-done:
-			s.syncToDB(db)
+			s.syncToJSON(path)
 			return
 		}
 	}
 }
 
-func (s *stats) syncToDB(db *badger.DB) {
+func (s *stats) syncToJSON(path string) {
 	lastSynced := atomic.LoadInt64(&s.lastSynced)
 	lastUpdated := atomic.LoadInt64(&s.lastUpdated)
 	if lastSynced == lastUpdated {
-		log.Trace("stats.syncToDB: nothing changed, DB is up-to-date")
+		log.Trace("stats.syncToJSON: nothing changed, file is up-to-date")
 		return
 	}
 
-	err := db.Update(func(tx *badger.Txn) error {
-		err := tx.Set([]byte("view_total"), []byte(strconv.FormatInt(s.TotalView(), 10)))
-		if err != nil {
-			return err
-		}
+	sd := statsData{
+		TotalView: s.TotalView(),
+		TotalGet:  s.TotalGet(),
+		PkgsView:  make(map[string]int64),
+		PkgsGet:   make(map[string]int64),
+	}
 
-		err = tx.Set([]byte("get_total"), []byte(strconv.FormatInt(s.TotalGet(), 10)))
-		if err != nil {
-			return err
-		}
+	for p := range s.pkgsView {
+		sd.PkgsView[p] = s.PkgView(p)
+	}
 
-		for p := range s.pkgsView {
-			err = tx.Set([]byte("view_"+p), []byte(strconv.FormatInt(s.PkgView(p), 10)))
-			if err != nil {
-				return err
-			}
+	for p := range s.pkgsGet {
+		sd.PkgsGet[p] = s.PkgGet(p)
+	}
 
-			err = tx.Set([]byte("get_"+p), []byte(strconv.FormatInt(s.PkgGet(p), 10)))
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	data, err := json.MarshalIndent(sd, "", "  ")
 	if err != nil {
-		log.Error("Failed to update DB: %v", err)
+		log.Error("Failed to marshal stats: %v", err)
+		return
+	}
+
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		log.Error("Failed to write stats file: %v", err)
 		return
 	}
 
