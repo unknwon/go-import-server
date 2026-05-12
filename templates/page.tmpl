@@ -5,7 +5,14 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="go-import" content="{{.ImportPath}} git {{.Repo}}">
   <meta name="go-source" content="{{.ImportPath}} _ {{.Repo}}/tree/{{.Branch}}{/dir} {{.Repo}}/blob/{{.Branch}}{/dir}/{file}#L{line}">
+  <title>{{.ImportPath}}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
+    body, pre, code {
+      font-family: "Geist Mono", ui-monospace, monospace;
+    }
     pre {
       tab-size: 4;
     }
