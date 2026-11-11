@@ -5,7 +5,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="go-import" content="{{.ImportPath}} git {{.Repo}}">
   <meta name="go-source" content="{{.ImportPath}} _ {{.Repo}}/tree/{{.Branch}}{/dir} {{.Repo}}/blob/{{.Branch}}{/dir}/{file}#L{line}">
-  <title>{{.ImportPath}}</title>
+  <title>{{$.ImportPath}}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -19,16 +19,16 @@
   </style>
 </head>
 <body>
-<p>Install command:</p>
+<p>Add to your module:</p>
 <pre>
-	<code>go get {{.ImportPath}}</code></pre>
+	<code>go get {{$.ImportPath}}</code></pre>
 
 <p>Import in source code:</p>
 <pre>
-	<code>import "{{.ImportPath}}"</code></pre>
+	<code>import "{{$.ImportPath}}"</code></pre>
 
 <p>Repository: <a href="{{.Repo}}">{{.Repo}}</a></p>
-<p>GoDoc: <a href="https://pkg.go.dev/{{.ImportPath}}">https://pkg.go.dev/{{.ImportPath}}</a></p>
+<p>GoDoc: <a href="https://pkg.go.dev/{{$.ImportPath}}">https://pkg.go.dev/{{$.ImportPath}}</a></p>
 <p>Return to <a href="/">home</a>.</p>
 </body>
 </html>

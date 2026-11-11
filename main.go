@@ -81,6 +81,7 @@ func main() {
 		}
 
 		data["Package"] = pkg
+		data["ImportPath"] = requestedImportPath(pkg, r.URL.Path)
 		t.HTML(http.StatusOK, "page")
 
 		log.Trace("Page served: %s", r.URL.Path)
@@ -158,6 +159,13 @@ func matchPackage(pkgs []packageConfig, path string) (packageConfig, bool) {
 		}
 	}
 	return matched, ok
+}
+
+// requestedImportPath returns the import path of the given path under the
+// package, e.g., "/x/foo" under "unknwon.dev/x" is "unknwon.dev/x/foo".
+func requestedImportPath(pkg packageConfig, path string) string {
+	rest := strings.TrimPrefix(path, strings.TrimSuffix(pkg.Subpath, "/"))
+	return pkg.ImportPath + strings.TrimSuffix(rest, "/")
 }
 
 func loadConfig(path string) (*config, error) {

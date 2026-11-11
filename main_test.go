@@ -45,3 +45,23 @@ func TestMatchPackage(t *testing.T) {
 		})
 	}
 }
+
+func TestRequestedImportPath(t *testing.T) {
+	pkg := packageConfig{ImportPath: "unknwon.dev/git-lfs-server", Subpath: "/git-lfs-server"}
+	tests := []struct {
+		path string
+		want string
+	}{
+		{path: "/git-lfs-server", want: "unknwon.dev/git-lfs-server"},
+		{path: "/git-lfs-server/", want: "unknwon.dev/git-lfs-server"},
+		{path: "/git-lfs-server/lfs", want: "unknwon.dev/git-lfs-server/lfs"},
+		{path: "/git-lfs-server/lfs/storage/", want: "unknwon.dev/git-lfs-server/lfs/storage"},
+	}
+	for _, test := range tests {
+		t.Run(test.path, func(t *testing.T) {
+			if got := requestedImportPath(pkg, test.path); got != test.want {
+				t.Fatalf("want %q but got %q", test.want, got)
+			}
+		})
+	}
+}
