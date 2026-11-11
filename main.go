@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 	"github.com/flamego/auth"
@@ -67,20 +68,29 @@ func main() {
 			var pkgGet int64
 			stats.pkgsGet[pkg.ImportPath] = &pkgGet
 		}
-
-		f.Get(pkg.Subpath, func(r *http.Request, t template.Template, data template.Data) {
-			data["Package"] = pkg
-			t.HTML(http.StatusOK, "page")
-
-			log.Trace("Page served: %s", r.URL.Path)
-
-			if r.URL.Query().Get("go-get") == "1" {
-				stats.PkgGetIncr(pkg.ImportPath, 1)
-			} else {
-				stats.PkgViewIncr(pkg.ImportPath, 1)
-			}
-		})
 	}
+
+	// Requests for any path under a package (e.g., a nested module or a
+	// subpackage) are served with the meta tags of the package itself, as
+	// required by "go get" for remote import paths.
+	f.Get("/{**: **}", func(w http.ResponseWriter, r *http.Request, t template.Template, data template.Data) {
+		pkg, ok := matchPackage(config.Packages, r.URL.Path)
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
+
+		data["Package"] = pkg
+		t.HTML(http.StatusOK, "page")
+
+		log.Trace("Page served: %s", r.URL.Path)
+
+		if r.URL.Query().Get("go-get") == "1" {
+			stats.PkgGetIncr(pkg.ImportPath, 1)
+		} else {
+			stats.PkgViewIncr(pkg.ImportPath, 1)
+		}
+	})
 
 	f.Get("/-/metrics",
 		func(c flamego.Context) {
@@ -117,18 +127,37 @@ func main() {
 }
 
 type config struct {
-	Addr      string
-	StatsPath string `toml:"stats_path"`
-	Packages  []struct {
-		ImportPath string `toml:"import_path"`
-		Subpath    string
-		Repo       string
-		Branch     string
-	}
+	Addr       string
+	StatsPath  string `toml:"stats_path"`
+	Packages   []packageConfig
 	Prometheus struct {
 		AuthUsername string `toml:"auth_username"`
 		AuthPassword string `toml:"auth_password"`
 	}
+}
+
+type packageConfig struct {
+	ImportPath string `toml:"import_path"`
+	Subpath    string
+	Repo       string
+	Branch     string
+}
+
+// matchPackage returns the package whose subpath is the longest match of the
+// given path on path segment boundaries, e.g., "/x/foo" matches "/x" but
+// "/xfoo" does not.
+func matchPackage(pkgs []packageConfig, path string) (packageConfig, bool) {
+	var matched packageConfig
+	var ok bool
+	for _, pkg := range pkgs {
+		if path != pkg.Subpath && !strings.HasPrefix(path, strings.TrimSuffix(pkg.Subpath, "/")+"/") {
+			continue
+		}
+		if !ok || len(pkg.Subpath) > len(matched.Subpath) {
+			matched, ok = pkg, true
+		}
+	}
+	return matched, ok
 }
 
 func loadConfig(path string) (*config, error) {
